@@ -1,0 +1,19 @@
+# Configuración con credenciales: solo se versiona la plantilla
+env
+env.*
+!env.example
+
+# Evidencia y resultados (pueden contener IDs reales, tokens en trazas, capturas)
+evidence-validacion/
+test-results*/
+playwright-report*/
+exploratory-tests/evidence*/
+exploratory-tests/results*/
+exploratory-tests/reporte-*.html
+!exploratory-tests/*.template.html
+blob-report/
+
+node_modules/
+__pycache__/
+*.pyc
+.DS_Store

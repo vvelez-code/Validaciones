@@ -1,0 +1,21 @@
+{
+  "name": "suite-validacion",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Validación automatizada de la Suite ADO <SUITE_ID> con Playwright",
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:debug": "playwright test --debug",
+    "report": "playwright show-report",
+    "validate": "python qa-validate.py",
+    "validate:dry": "python qa-validate.py --dry-run"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.48.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

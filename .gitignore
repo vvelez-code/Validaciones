@@ -1,0 +1,15 @@
+node_modules/
+__pycache__/
+*.pyc
+.DS_Store
+# Espacios de trabajo de evaluación (pueden contener evidencias de ejecuciones reales)
+*-workspace/
+# Nunca versionar configuración local
+env
+env.*
+!env.example
+
+# Salidas de Playwright si alguien prueba las plantillas dentro del repo
+evidence-validacion/
+test-results*/
+playwright-report*/

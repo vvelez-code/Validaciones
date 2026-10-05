@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reporte exploratorio</title>
+<style>
+  :root {
+    --bg: #f6f7f9; --card: #ffffff; --text: #1d2330; --muted: #5b6475; --border: #e2e5ea;
+    --ok: #1f8a4c; --bug: #c62f3b; --obs: #b26a00; --info: #2f6fb3;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #12151b; --card: #1b2029; --text: #e7eaf0; --muted: #9aa3b2; --border: #2a313d;
+            --ok: #4cc286; --bug: #ff6b75; --obs: #f0a640; --info: #6aa8ec; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 1040px; margin: 0 auto; padding: 32px 16px 64px; }
+  h1 { font-size: 26px; margin: 0 0 4px; }
+  .meta { color: var(--muted); margin-bottom: 24px; }
+  .pills { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 28px; }
+  .pill { border: 1px solid var(--border); background: var(--card); border-radius: 999px; padding: 6px 14px; font-weight: 600; }
+  .pill b { font-size: 18px; margin-right: 6px; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; margin-bottom: 14px; }
+  .card h2 { font-size: 17px; margin: 0 0 6px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .badge { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; padding: 2px 8px; border-radius: 6px; color: #fff; }
+  .correcto { background: var(--ok); } .bug { background: var(--bug); } .observacion { background: var(--obs); } .informativo { background: var(--info); }
+  .grid { display: grid; grid-template-columns: 110px 1fr; gap: 4px 14px; margin-top: 10px; }
+  .grid dt { color: var(--muted); font-weight: 600; } .grid dd { margin: 0; overflow-wrap: anywhere; }
+  .hallazgo { margin-top: 12px; border-left: 4px solid var(--bug); padding: 8px 12px; background: color-mix(in srgb, var(--bug) 8%, transparent); border-radius: 0 8px 8px 0; }
+  .evid { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+  .evid img { max-width: 220px; border: 1px solid var(--border); border-radius: 6px; cursor: zoom-in; }
+  .evid a { color: var(--info); }
+  dialog { border: 0; padding: 0; background: transparent; max-width: 96vw; }
+  dialog img { max-width: 96vw; max-height: 92vh; }
+  dialog::backdrop { background: rgba(0,0,0,.75); }
+  @media (max-width: 560px) { .grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<main id="app"></main>
+<dialog id="lightbox" onclick="this.close()"><img alt=""></dialog>
+<script>
+  const DATA = /*__DATA__*/null;
+  const LABEL = { correcto: 'Correcto', bug: 'Bug', observacion: 'Observación', informativo: 'Informativo' };
+  const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const app = document.getElementById('app');
+  if (!DATA) {
+    app.innerHTML = '<h1>Reporte exploratorio</h1><p class="meta">Plantilla sin datos: se completa al ejecutar explore.mjs.</p>';
+  } else {
+    const order = ['bug', 'observacion', 'informativo', 'correcto'];
+    const rows = [...DATA.resultados].sort((a, b) => order.indexOf(a.veredicto) - order.indexOf(b.veredicto));
+    app.innerHTML = `
+      <h1>${esc(DATA.titulo)}</h1>
+      <div class="meta">Ambiente: <b>${esc(DATA.ambiente)}</b> · ${esc(new Date(DATA.fecha).toLocaleString())} · ${rows.length} escenario(s)</div>
+      <div class="pills">${order.filter((k) => DATA.totales[k]).map((k) => `<span class="pill"><b>${DATA.totales[k]}</b>${LABEL[k]}</span>`).join('')}</div>
+      ${rows.map((r) => `
+        <section class="card">
+          <h2><span class="badge ${esc(r.veredicto)}">${esc(LABEL[r.veredicto] || r.veredicto)}${r.severidad ? ' · ' + esc(r.severidad) : ''}</span>${esc(r.escenario)}</h2>
+          <div>${esc(r.descripcion)}</div>
+          <dl class="grid"><dt>Esperado</dt><dd>${esc(r.esperado)}</dd><dt>Observado</dt><dd>${esc(r.observado)}</dd></dl>
+          ${r.hallazgo ? `<div class="hallazgo"><b>Hallazgo:</b> ${esc(r.hallazgo)}</div>` : ''}
+          <div class="evid">${(r.evidencias || []).map((e) => /\.png$/i.test(e)
+            ? `<img src="${esc(e)}" alt="captura ${esc(r.escenario)}" onclick="lb(this.src)">`
+            : `<a href="${esc(e)}" target="_blank">${esc(e.split('/').pop())}</a>`).join('')}</div>
+        </section>`).join('')}`;
+  }
+  function lb(src) { const d = document.getElementById('lightbox'); d.querySelector('img').src = src; d.showModal(); }
+</script>
+</body>
+</html>

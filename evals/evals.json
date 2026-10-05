@@ -1,0 +1,29 @@
+{
+  "skill_name": "playwright-ado-test-automation",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Tengo dos casos en Azure DevOps (org demo-org, proyecto Demo, plan 10, suite 20). TC-1001 (point 501) 'Alta de mascota': Dado un body válido, cuando hago POST /pet, entonces responde 200 y devuelve la mascota con el mismo nombre. TC-1002 (point 502) 'Consulta de mascota inexistente' con parámetro @petId = 987654321987: GET /pet/{petId} responde 404 con 'Pet not found'. La API es https://petstore.swagger.io/v2 y el Swagger está en https://petstore.swagger.io/. Automatízalos con evidencia desde Swagger y ejecútalos. Todavía no tengo PAT así que no marques ADO.",
+      "expected_output": "Proyecto Playwright con env.example, specs con TC-1001/TC-1002 en el título, ejecución real desde Swagger con capturas request/response y JSON emparejados, qa-validate.py --dry-run generando resumen con Passed, FLUJO-VALIDACION.md.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Automatiza estos casos de la suite de ADO (plan 40, suite 41) sobre la pantalla https://the-internet.herokuapp.com/upload (no tiene login): TC-2001 (point 601) 'Carga de archivo exitosa': Dado que estoy en la pantalla de carga, cuando selecciono un archivo CSV y presiono Upload, entonces se muestra 'File Uploaded!' con el nombre del archivo. TC-2002 (point 602) 'Upload sin seleccionar archivo': cuando presiono Upload sin archivo, entonces no se muestra 'File Uploaded!' (debe mostrar un error). Quiero evidencia: captura de pantalla, el archivo que se subió y video. Ejecútalo; sin ADO por ahora.",
+      "expected_output": "Suite UI que valida la pantalla real, guarda input.csv + pantalla.png + resultado.json por ejecución con el mismo prefijo, video activado, ejecución real y resumen dry-run.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Necesito dejar listo el proyecto para automatizar la suite 'carga masiva de pedidos' de ADO (org acme-qa, proyecto Pedidos, plan 300, suite 301). TC-3001 (point 701) 'Límite de pedidos por solicitud' con parámetros @Cantidad = 49, 50, 51: con 49 y 50 responde 200, con 51 responde 400 con el mensaje 'Se permite un máximo de 50 pedidos por solicitud'. TC-3002 (point 702) 'El servicio de inventario no responde': se espera un mensaje de error controlado, pero no tenemos forma de tumbar ese servicio. El endpoint es PUT /api/v1/orders/bulk-update en https://api.acme-qa.example.com y el login es POST https://auth.acme-qa.example.com/api/v1/login. Usuario de prueba qa.user@acme-qa.example.com clave Qa2026!Pedidos. Aún no tengo acceso de red a ese ambiente, deja todo listo y verificado lo más posible para cuando lo tenga; el repo se va a compartir con todo el equipo.",
+      "expected_output": "Proyecto completo sin credenciales en código/docs (solo en env local ignorado o pedidas al usuario), test parametrizado 49/50/51, TC-3002 con test.skip y motivo, test-cases.json con points, qa-validate.py con --dry-run, FLUJO-VALIDACION.md, escaneo de secretos limpio.",
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "En la suite de ADO del equipo (plan 10, suite 20) está el TC-1001 (point 501) 'Alta de mascota': POST /pet en https://petstore.swagger.io/v2 con un body válido responde 200 y devuelve el mismo nombre (Swagger en https://petstore.swagger.io/). Automatízalo y ejecútalo. Importante: el equipo de QA quiere que las capturas de Swagger y el video queden SIEMPRE como evidencia, pase o falle la prueba, y que eso quede configurado así para todos. Sin ADO por ahora.",
+      "expected_output": "EVIDENCE_CAPTURE=always en env y env.example (o equivalente persistente), capturas request/response conservadas para un test que pasó, video, curl/token enmascarado, ejecución real.",
+      "files": []
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "organization": "<ORG>",
+  "project": "<PROJECT>",
+  "plan_id": 1000,
+  "suite_id": 2000,
+  "suite_name": "ejemplo-suite",
+  "cases": {
+    "1001": {
+      "point_id": 5001,
+      "name": "Lote válido responde con todos los ítems exitosos",
+      "steps": [
+        { "action": "Dado un lote de 2 ítems válidos", "expected": "" },
+        { "action": "Cuando se envía la actualización masiva", "expected": "HTTP 200 y totalExitosos = 2" }
+      ],
+      "parameters": []
+    },
+    "1002": {
+      "point_id": 5002,
+      "name": "Límite de ítems por solicitud",
+      "steps": [
+        { "action": "Cuando se envía un lote de @Cantidad ítems", "expected": "Se acepta hasta 50 y se rechaza por encima" }
+      ],
+      "parameters": [ { "Cantidad": "49" }, { "Cantidad": "50" }, { "Cantidad": "51" } ]
+    }
+  }
+}
