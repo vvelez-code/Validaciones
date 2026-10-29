@@ -23,7 +23,7 @@ Cubre dos variantes:
 ## Instalación
 
 ```bash
-npx skills add <tu-usuario>/playwright-ado-test-automation
+npx skills add Vivi-Boob/Playwright-Automation
 ```
 
 O copia `skills/playwright-ado-test-automation/` a `~/.claude/skills/` (u otra carpeta de

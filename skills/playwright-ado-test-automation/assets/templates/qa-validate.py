@@ -66,9 +66,22 @@ EVIDENCE_RE = re.compile(
 )
 
 
+PROGRESS_JSON = False
+PROGRESS_PREFIX = "@@PROGRESS "
+
+
+def emit(event, **data):
+    """Con --progress-json, una línea `@@PROGRESS {json}` por evento para que un runner/UI la lea sin parsear emojis."""
+    if PROGRESS_JSON:
+        print(PROGRESS_PREFIX + json.dumps({"event": event, **data}, ensure_ascii=False), flush=True)
+
+
 def configure_environment(name):
     global TEST_ENV, ENV_FILE, EVIDENCE_DIR, TEST_RESULTS, PLAYWRIGHT_REPORT
     TEST_ENV = (name or "test").strip().lower()
+    if not re.fullmatch(r"[a-z0-9-]+", TEST_ENV):
+        # El nombre forma parte de rutas (env.<nombre>, carpetas): sin esto un valor como ../x escapa de ROOT.
+        sys.exit(f"❌ Nombre de ambiente inválido: {name!r} (solo minúsculas, números y guiones).")
     if TEST_ENV != "test":
         ENV_FILE = ROOT / f"env.{TEST_ENV}"
         EVIDENCE_DIR = ROOT / "evidence-validacion" / TEST_ENV
@@ -104,6 +117,7 @@ def slugify(text, max_len=60):
 
 def run_playwright():
     print("\n🎭 Ejecutando pruebas Playwright...")
+    emit("playwright_start")
     try:
         result = subprocess.run(
             "npx playwright test", cwd=ROOT, shell=True, text=True, encoding="utf-8", errors="replace",
@@ -117,6 +131,7 @@ def run_playwright():
         print("⚠️ ", result.stderr[-2000:])
     if result.returncode != 0:
         print(f"⚠️  Playwright terminó con código {result.returncode} (hay fallos u omitidos; ver detalle abajo)")
+    emit("playwright_done", exit_code=result.returncode)
     return True
 
 
@@ -298,6 +313,8 @@ def collect_results(config):
             "evidence_names": names, "summary": summary,
         })
         print(f"  {'✓' if outcome == 'Passed' else '•'} TC-{tc_id}: {outcome} ({len(tc_execs)} ejecución(es), {len(evidence)} archivo(s))")
+        emit("case_result", tcId=tc_id, name=meta.get("name", ""), outcome=outcome,
+             executions=len(tc_execs), evidence=len(evidence))
     return results
 
 
@@ -332,6 +349,7 @@ class Ado:
                                json=[{"id": tc["point_id"], "results": {"outcome": outcome, "state": "completed"}}])
         if resp.status_code not in (200, 204):
             print(f"  ❌ TC-{tc['tcId']} (point {tc['point_id']}): HTTP {resp.status_code} {resp.text[:200]}")
+            emit("ado_mark", tcId=tc["tcId"], ok=False, http=resp.status_code)
             return False
         print(f"  ✓ TC-{tc['tcId']} (point {tc['point_id']}): {outcome}")
 
@@ -341,6 +359,7 @@ class Ado:
         result_id = (point or {}).get("results", {}).get("lastResultId")
         if not (run_id and result_id):
             print("      ⚠️  No se encontró el run/result del point para comentar y adjuntar")
+            emit("ado_mark", tcId=tc["tcId"], ok=True, attached=0, attach_total=len(tc["evidence_files"]), commented=False)
             return True
         self.http.patch(f"{self.test}/runs/{run_id}/results?api-version=7.1", headers=self.headers, timeout=30,
                         json=[{"id": result_id, "comment": build_comment(tc)}])
@@ -356,6 +375,7 @@ class Ado:
             ok += r.status_code in (200, 201)
         if tc["evidence_files"]:
             print(f"      📎 {ok}/{len(tc['evidence_files'])} evidencias adjuntadas")
+        emit("ado_mark", tcId=tc["tcId"], ok=True, attached=ok, attach_total=len(tc["evidence_files"]), commented=True)
         return True
 
 
@@ -381,7 +401,10 @@ def main():
     p.add_argument("--upload-only", action="store_true", help="Solo sube a ADO resultados existentes")
     p.add_argument("--ado", action="store_true", help="En un ambiente distinto de test, marcar igualmente ADO")
     p.add_argument("--dry-run", action="store_true", help="No contacta ADO; solo ejecuta y resume")
+    p.add_argument("--progress-json", action="store_true", help="Emite líneas '@@PROGRESS {json}' con eventos estructurados (para un runner o una UI)")
     args = p.parse_args()
+    global PROGRESS_JSON
+    PROGRESS_JSON = args.progress_json
     configure_environment(args.env)
     config = load_cases()
     global EVIDENCE_CAPTURE
@@ -391,6 +414,8 @@ def main():
     print("=" * 70)
     print(f"🚀 QA VALIDATOR - {suite_name} | ambiente: {TEST_ENV} ({ENV_FILE.name}) | evidencia visual: {EVIDENCE_CAPTURE}")
     print("=" * 70)
+    emit("start", suite=suite_name, environment=TEST_ENV, capture=EVIDENCE_CAPTURE, total_cases=len(config["cases"]),
+         dry_run=args.dry_run)
     if TEST_ENV != "test" and not ENV_FILE.exists():
         print(f"❌ No existe {ENV_FILE.name}. Créalo a partir de env.example.")
         return 1
@@ -424,6 +449,7 @@ def main():
     print(f"📁 Evidencia: {EVIDENCE_DIR.relative_to(ROOT)}/")
     print(f"📄 Resumen:   {summary_file.relative_to(ROOT)}")
     print(f"📊 Reporte:   {PLAYWRIGHT_REPORT.relative_to(ROOT)}/index.html")
+    emit("done", counts=counts, summary=str(summary_file.relative_to(ROOT)))
     return 0
 
 
